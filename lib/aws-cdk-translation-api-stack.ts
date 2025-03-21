@@ -1,16 +1,28 @@
-import * as cdk from 'aws-cdk-lib';
+import { Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
+import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
 
-export class AwsCdkTranslationApiStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+export class AwsCdkTranslationApiStack extends Stack {
+  constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    
+    const table = new Table(this, 'MyApiTable', {
+      tableName: 'MyApiTable',
+      partitionKey: {
+        name: 'pk',
+        type: AttributeType.STRING,
+      },
+      sortKey: {
+        name: 'sk',
+        type: AttributeType.STRING,
+      },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+    });
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'AwsCdkTranslationApiQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    
+    new CfnOutput(this, 'TableNameOutput', {
+      value: table.tableName
+    });
   }
 }
