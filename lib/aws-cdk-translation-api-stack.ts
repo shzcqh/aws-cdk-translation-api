@@ -2,13 +2,14 @@ import { Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
 import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 
+
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { join } from 'path';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
-// API Gateway
-import { RestApi, LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
+// API Gateway//ApiKey, UsagePlan, Period
+import { RestApi, LambdaIntegration, ApiKey, UsagePlan, Period } from 'aws-cdk-lib/aws-apigateway';
 
 export class AwsCdkTranslationApiStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -101,6 +102,26 @@ const thingSortResource = thingResource.addResource('{sortKey}');
     thingSortResource.addMethod('PUT', new LambdaIntegration(updateItemFunction));
 // /things/{partitionKey}/{sortKey}/translation
 const translationResource = thingSortResource.addResource('translation');
-translationResource.addMethod('GET', new LambdaIntegration(translateItemFunction));    
+translationResource.addMethod('GET', new LambdaIntegration(translateItemFunction));
+//Create an API Key and Usage Plan
+const apiKey = new ApiKey(this, 'MyApiKey', {
+  apiKeyName: 'MyApiKey',
+  
+});
+
+const usagePlan = new UsagePlan(this, 'MyUsagePlan', {
+  name: 'MyUsagePlan',
+  throttle: {
+    rateLimit: 10,  
+    burstLimit: 2,  
+  },
+  quota: {
+    limit: 1000,
+    period: Period.DAY,
+  },
+});
+
+// Bind the apiKey to the usage plan
+usagePlan.addApiKey(apiKey);    
   }
 }
