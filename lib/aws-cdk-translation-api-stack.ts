@@ -66,7 +66,7 @@ table.grantReadWriteData(updateItemFunction);
 //Define translateItemFunction and grant permissions
 const translateItemFunction = new NodejsFunction(this, 'TranslateItemFunction', {
   runtime: Runtime.NODEJS_18_X,
-  entry: join(__dirname, '..', 'lambdas', 'translateItem.ts'), // 确保该文件存在
+  entry: join(__dirname, '..', 'lambdas', 'translateItem.ts'),
   environment: {
     TABLE_NAME: table.tableName,
   },
@@ -76,7 +76,10 @@ table.grantReadData(translateItemFunction);
 //Give permission to call AWS Translate
 translateItemFunction.addToRolePolicy(
   new PolicyStatement({
-    actions: ['translate:*'],
+    actions: [
+      'translate:*',
+      'comprehend:DetectDominantLanguage' 
+    ],
     resources: ['*'],
   })
 );
