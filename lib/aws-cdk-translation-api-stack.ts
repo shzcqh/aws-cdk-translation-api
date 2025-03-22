@@ -65,5 +65,7 @@ export class AwsCdkTranslationApiStack extends Stack {
     things.addMethod('GET', new LambdaIntegration(getAllItemsFunction));
     // POST /things
     things.addMethod('POST', new LambdaIntegration(createItemFunction));
+    const thingResource = things.addResource('{partitionKey}');
+thingResource.addMethod('GET', new LambdaIntegration(getItemsByPartitionFunction));
   }
 }
