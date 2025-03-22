@@ -27,5 +27,27 @@ export class AwsCdkTranslationApiStack extends Stack {
     new CfnOutput(this, 'TableNameOutput', {
       value: table.tableName
     });
+     
+     const getAllItemsFunction = new Function(this, 'GetAllItemsFunction', {
+      runtime: Runtime.NODEJS_14_X,
+      code: Code.fromAsset('lambdas'),       
+      handler: 'getAllItems.handler',        
+      environment: {
+        TABLE_NAME: table.tableName,         
+      },
+    });
+
+    table.grantReadWriteData(getAllItemsFunction);
+
+    const createItemFunction = new Function(this, 'CreateItemFunction', {
+      runtime: Runtime.NODEJS_14_X,
+      code: Code.fromAsset('lambdas'),
+      handler: 'createItem.handler',
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+    });
+
+    table.grantReadWriteData(createItemFunction);
   }
 }
