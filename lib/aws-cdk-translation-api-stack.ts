@@ -96,6 +96,8 @@ thingResource.addMethod('GET', new LambdaIntegration(getItemsByPartitionFunction
 // /things/{partitionKey}/{sortKey} Bind a PUT
 const thingSortResource = thingResource.addResource('{sortKey}');
     thingSortResource.addMethod('PUT', new LambdaIntegration(updateItemFunction));
-    
+// /things/{partitionKey}/{sortKey}/translation
+const translationResource = thingSortResource.addResource('translation');
+translationResource.addMethod('GET', new LambdaIntegration(translateItemFunction));    
   }
 }
