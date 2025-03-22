@@ -44,6 +44,15 @@ export class AwsCdkTranslationApiStack extends Stack {
       },
     });
     table.grantReadWriteData(createItemFunction);
+//Use NodejsFunction to creat getItemsByPartitionFunction
+    const getItemsByPartitionFunction = new NodejsFunction(this, 'GetItemsByPartitionFunction', {
+      runtime: Runtime.NODEJS_18_X,
+      entry: join(__dirname, '..', 'lambdas', 'getItemsByPartition.ts'),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+    });
+    table.grantReadWriteData(getItemsByPartitionFunction);
 
     //Create and configure an API Gateway
     const api = new RestApi(this, 'AppApi', {
