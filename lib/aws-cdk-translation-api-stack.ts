@@ -5,6 +5,7 @@ import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { join } from 'path';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 // API Gateway
 import { RestApi, LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
@@ -62,6 +63,23 @@ const updateItemFunction = new NodejsFunction(this, 'UpdateItemFunction', {
   },
 });
 table.grantReadWriteData(updateItemFunction);
+//Define translateItemFunction and grant permissions
+const translateItemFunction = new NodejsFunction(this, 'TranslateItemFunction', {
+  runtime: Runtime.NODEJS_18_X,
+  entry: join(__dirname, '..', 'lambdas', 'translateItem.ts'), // 确保该文件存在
+  environment: {
+    TABLE_NAME: table.tableName,
+  },
+});
+
+table.grantReadData(translateItemFunction);
+//Give permission to call AWS Translate
+translateItemFunction.addToRolePolicy(
+  new PolicyStatement({
+    actions: ['translate:*'],
+    resources: ['*'],
+  })
+);
     //Create and configure an API Gateway
     const api = new RestApi(this, 'AppApi', {
       restApiName: 'ThingsService',
@@ -78,5 +96,6 @@ thingResource.addMethod('GET', new LambdaIntegration(getItemsByPartitionFunction
 // /things/{partitionKey}/{sortKey} Bind a PUT
 const thingSortResource = thingResource.addResource('{sortKey}');
     thingSortResource.addMethod('PUT', new LambdaIntegration(updateItemFunction));
+    
   }
 }
