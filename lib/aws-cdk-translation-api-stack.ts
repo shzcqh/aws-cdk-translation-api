@@ -93,12 +93,20 @@ translateItemFunction.addToRolePolicy(
 
     // GET /things
     things.addMethod('GET', new LambdaIntegration(getAllItemsFunction));
+    //To secure POST /things, an API Key is required
+    const postMethod = things.addMethod('POST', new LambdaIntegration(createItemFunction), {
+      apiKeyRequired: true, 
+    });
     // POST /things
     things.addMethod('POST', new LambdaIntegration(createItemFunction));
     const thingResource = things.addResource('{partitionKey}');
 thingResource.addMethod('GET', new LambdaIntegration(getItemsByPartitionFunction));
 // /things/{partitionKey}/{sortKey} Bind a PUT
 const thingSortResource = thingResource.addResource('{sortKey}');
+//Protect PUT /things/{pk}/{sk}
+const putMethod = thingSortResource.addMethod('PUT', new LambdaIntegration(updateItemFunction), {
+  apiKeyRequired: true, 
+});
     thingSortResource.addMethod('PUT', new LambdaIntegration(updateItemFunction));
 // /things/{partitionKey}/{sortKey}/translation
 const translationResource = thingSortResource.addResource('translation');
