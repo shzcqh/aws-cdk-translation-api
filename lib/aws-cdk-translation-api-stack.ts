@@ -53,7 +53,15 @@ export class AwsCdkTranslationApiStack extends Stack {
       },
     });
     table.grantReadWriteData(getItemsByPartitionFunction);
-
+//Define updateItemFunction
+const updateItemFunction = new NodejsFunction(this, 'UpdateItemFunction', {
+  runtime: Runtime.NODEJS_18_X,
+  entry: join(__dirname, '..', 'lambdas', 'updateItem.ts'), 
+  environment: {
+    TABLE_NAME: table.tableName,
+  },
+});
+table.grantReadWriteData(updateItemFunction);
     //Create and configure an API Gateway
     const api = new RestApi(this, 'AppApi', {
       restApiName: 'ThingsService',
@@ -67,5 +75,8 @@ export class AwsCdkTranslationApiStack extends Stack {
     things.addMethod('POST', new LambdaIntegration(createItemFunction));
     const thingResource = things.addResource('{partitionKey}');
 thingResource.addMethod('GET', new LambdaIntegration(getItemsByPartitionFunction));
+// /things/{partitionKey}/{sortKey} Bind a PUT
+const thingSortResource = thingResource.addResource('{sortKey}');
+    thingSortResource.addMethod('PUT', new LambdaIntegration(updateItemFunction));
   }
 }
