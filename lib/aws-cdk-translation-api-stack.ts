@@ -49,5 +49,15 @@ export class AwsCdkTranslationApiStack extends Stack {
     });
 
     table.grantReadWriteData(createItemFunction);
+
+     //Create and configure an API Gateway
+     const api = new RestApi(this, "AppApi", {
+      restApiName: "ThingsService",
+    });
+
+    const things = api.root.addResource("things");
+
+    things.addMethod("GET", new LambdaIntegration(getAllItemsFunction));
+    things.addMethod("POST", new LambdaIntegration(createItemFunction));
   }
 }
