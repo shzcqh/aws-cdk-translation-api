@@ -1,20 +1,24 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { AwsCdkTranslationApiStack } from '../lib/aws-cdk-translation-api-stack';
+import { DynamoStack } from '../lib/dynamo-stack';
+import { LambdaStack } from '../lib/lambda-stack';
+import { ApiStack } from '../lib/api-stack';
 
 const app = new cdk.App();
-new AwsCdkTranslationApiStack(app, 'AwsCdkTranslationApiStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+// Instantiate the DynamoDB stack
+const dynamoStack = new DynamoStack(app, 'DynamoStack');
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+// Instantiate the Lambda stack, passing the DynamoDB table from DynamoStack
+const lambdaStack = new LambdaStack(app, 'LambdaStack', {
+  table: dynamoStack.table,
+});
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+// Instantiate the API stack, passing the Lambda functions from LambdaStack
+const apiStack = new ApiStack(app, 'ApiStack', {
+  getAllItemsFunction: lambdaStack.getAllItemsFunction,
+  createItemFunction: lambdaStack.createItemFunction,
+  getItemsByPartitionFunction: lambdaStack.getItemsByPartitionFunction,
+  updateItemFunction: lambdaStack.updateItemFunction,
+  translateItemFunction: lambdaStack.translateItemFunction,
 });
