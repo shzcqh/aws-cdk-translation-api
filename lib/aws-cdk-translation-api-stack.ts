@@ -74,7 +74,7 @@ export class AwsCdkTranslationApiStack extends Stack {
         TABLE_NAME: table.tableName,
       },
     });
-    table.grantReadData(translateItemFunction);
+    table.grantReadWriteData(translateItemFunction);
     translateItemFunction.addToRolePolicy(
       new PolicyStatement({
         actions: [
