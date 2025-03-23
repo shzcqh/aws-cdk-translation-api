@@ -53,6 +53,20 @@ export const handler = async (event: any) => {
         }),
       };
     }
+//Gets or initializes the translations field
+const cachedTranslations = item.translations || {};
+//If the target language already has a cache, it will be returned directly
+if (cachedTranslations[targetLanguage]) {
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      original: textToTranslate,
+      translated: cachedTranslations[targetLanguage],
+      sourceLanguage: "cached",
+      targetLanguage,
+    }),
+  };
+}
 
     const translateResult = await translator
       .translateText({
@@ -61,7 +75,24 @@ export const handler = async (event: any) => {
         Text: textToTranslate,
       })
       .promise();
-
+      const translatedText = translateResult.TranslatedText;
+      //Writeback is cached to DynamoDB
+      const updatedTranslations = {
+        ...cachedTranslations,
+        [targetLanguage]: translatedText,
+      };
+  
+      await db
+        .update({
+          TableName: tableName!,
+          Key: { pk: partitionKey, sk: sortKey },
+          UpdateExpression: "SET translations = :t",
+          ExpressionAttributeValues: {
+            ":t": updatedTranslations,
+          },
+        })
+        .promise();
+  
     //Returns the translation result
     return {
       statusCode: 200,
